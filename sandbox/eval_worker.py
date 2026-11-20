@@ -4,7 +4,7 @@ Kept self-contained (no `sia` imports) and baked into the image, so nothing the
 agent writes can change how it is scored.
 
   python eval_worker.py prepare                         # cache datasets + ground truth
-  python eval_worker.py eval <dataset> <samples.jsonl> <out.json>
+  python eval_worker.py eval <dataset> <samples.jsonl> <out.json> [workers]
 """
 
 import json
@@ -40,7 +40,8 @@ def short(x, n=300):
     return s if len(s) <= n else s[:n] + "..."
 
 
-def evaluate(dataset, samples_path, out_path, workers=4):
+def evaluate(dataset, samples_path, out_path, workers="4"):
+    workers = int(workers)
     problems, gt = load(dataset)
     with open(samples_path) as f:
         samples = [json.loads(line) for line in f if line.strip()]
@@ -87,6 +88,6 @@ if __name__ == "__main__":
             load(ds)
         print("prepared")
     elif cmd == "eval":
-        evaluate(*sys.argv[2:5])
+        evaluate(*sys.argv[2:6])
     else:
         raise SystemExit(__doc__)
