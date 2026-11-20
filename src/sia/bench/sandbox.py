@@ -12,7 +12,11 @@ CACHE_VOLUME = "sia-evalplus-cache"
 CACHE_MOUNT = "/home/runner/.cache/evalplus"
 MEMORY = "8g"  # container RAM cap, swap disabled. MBPP+ scoring peaks at 6.1G with 4 workers (measured 2026-11-20)
 WORKERS = 4  # parallel test processes inside the container
-SANDBOX_DIR = Path(__file__).resolve().parents[3] / "sandbox"
+LCB_VOLUME = "sia-lcb-cache"
+LCB_MOUNT = "/home/runner/lcb"
+REPO = Path(__file__).resolve().parents[3]
+SANDBOX_DIR = REPO / "sandbox"
+LCB_DATA = REPO / "data" / "lcb"  # raw/ (HF download) and meta.jsonl (no tests)
 
 
 def _engine() -> str:
@@ -40,13 +44,39 @@ def prepare() -> None:
     )
 
 
+def _userns(engine: str) -> list[str]:
+    # Rootless podman maps container uid 1000 to a subuid that can't write
+    # host dirs; keep-id maps it to the invoking user instead.
+    return ["--userns", "keep-id"] if engine == "podman" else []
+
+
+def prepare_lcb() -> None:
+    """Decode LiveCodeBench into the cache volume (tests) and data/lcb/meta.jsonl.
+
+    Private tests are pickled, so decoding happens in the container with no
+    network; the raw files are mounted read-only. Download them first with
+    `bench download-lcb`.
+    """
+    raw = LCB_DATA / "raw"
+    if not (raw / "test6.jsonl").exists():
+        raise FileNotFoundError(f"{raw} is missing; run `bench download-lcb` first")
+    build_image()
+    engine = _engine()
+    subprocess.run(
+        [engine, "run", "--rm", *_userns(engine), "--network", "none",
+         "--memory", MEMORY, "--memory-swap", MEMORY,
+         "-v", f"{LCB_VOLUME}:{LCB_MOUNT}:U",
+         "-v", f"{raw.resolve()}:/src:ro,Z",
+         "-v", f"{LCB_DATA.resolve()}:/out:rw,Z",
+         IMAGE, "prepare-lcb", "/src", "/out/meta.jsonl"],
+        check=True,
+    )
+
+
 def sandbox_args(samples: Path, out_dir: Path, memory: str = MEMORY) -> list[str]:
     engine = _engine()
-    # Rootless podman maps container uid 1000 to a subuid that can't write the
-    # host's out_dir; keep-id maps it to the invoking user instead.
-    userns = ["--userns", "keep-id"] if engine == "podman" else []
     return [
-        engine, "run", "--rm", *userns,
+        engine, "run", "--rm", *_userns(engine),
         "--network", "none",
         "--read-only", "--tmpfs", "/tmp:rw,size=512m",
         # memory-swap == memory disables swap: a runaway solution is OOM-killed
@@ -58,6 +88,7 @@ def sandbox_args(samples: Path, out_dir: Path, memory: str = MEMORY) -> list[str
         # 4 canonical HumanEval+ solutions fail.
         "--security-opt", "no-new-privileges",
         "-v", f"{CACHE_VOLUME}:{CACHE_MOUNT}:ro",
+        "-v", f"{LCB_VOLUME}:{LCB_MOUNT}:ro",
         "-v", f"{samples.resolve()}:/in/samples.jsonl:ro,Z",
         "-v", f"{out_dir.resolve()}:/out:rw,Z",
         IMAGE,

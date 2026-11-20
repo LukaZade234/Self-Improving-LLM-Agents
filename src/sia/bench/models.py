@@ -18,6 +18,9 @@ class ModelConfig:
     model: str
     tier: str = ""
     params: dict[str, Any] = field(default_factory=dict)
+    # Concurrent requests. Local Ollama runs OLLAMA_NUM_PARALLEL=1, so >1 only
+    # queues at the server and inflates per-task latency; APIs can go higher.
+    concurrency: int = 1
 
     def identity(self) -> dict[str, Any]:
         """Everything that affects outputs; used for cache keys and run configs."""
@@ -43,6 +46,7 @@ def load_models(path: Path = DEFAULT_CONFIG) -> dict[str, ModelConfig]:
             model=m["model"],
             tier=m.get("tier", ""),
             params={**defaults, **(m.get("params") or {})},
+            concurrency=m.get("concurrency", 1),
         )
         for name, m in cfg["models"].items()
     }

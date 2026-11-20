@@ -2638,6 +2638,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "evalplus" },
+    { name = "huggingface-hub" },
     { name = "litellm" },
     { name = "pyyaml" },
     { name = "typer" },
@@ -2651,6 +2652,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "evalplus", specifier = ">=0.3.1" },
+    { name = "huggingface-hub", specifier = ">=2.4.0" },
     { name = "litellm", specifier = ">=1.110.2" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "typer", specifier = ">=0.29.2" },

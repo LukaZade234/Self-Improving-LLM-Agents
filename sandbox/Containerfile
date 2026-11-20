@@ -1,12 +1,16 @@
-# Evaluation sandbox: scores generated code with EvalPlus. Runs with no network,
-# read-only root FS and a read-only dataset cache (see src/sia/bench/sandbox.py).
+# Evaluation sandbox: scores generated code with EvalPlus (HumanEval+/MBPP+) and
+# LiveCodeBench's own test runner. Runs with no network, read-only root FS and
+# read-only dataset caches (see src/sia/bench/sandbox.py).
 FROM docker.io/library/python:3.12-slim
 
-RUN pip install --no-cache-dir evalplus==0.3.1 \
- && useradd --create-home --uid 1000 runner
+RUN pip install --no-cache-dir evalplus==0.3.1 numpy \
+ && useradd --create-home --uid 1000 runner \
+ && mkdir -p /home/runner/lcb /home/runner/.cache/evalplus \
+ && chown -R runner:runner /home/runner
 
-COPY eval_worker.py /opt/sia/eval_worker.py
+COPY eval_worker.py lcb_worker.py lcb_testing_util.py LICENSE.livecodebench /opt/sia/
 
 USER runner
 WORKDIR /home/runner
+ENV PYTHONPATH=/opt/sia
 ENTRYPOINT ["python", "/opt/sia/eval_worker.py"]

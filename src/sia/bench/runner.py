@@ -14,7 +14,7 @@ import json
 import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -46,6 +46,7 @@ class TaskRecord:
     cost_usd: float
     finish_reason: str | None
     cached: bool
+    meta: dict = field(default_factory=dict)  # e.g. LCB difficulty / contest_date / platform
 
 
 @dataclass
@@ -180,6 +181,7 @@ def evaluate(
             prompt_tokens=g["prompt_tokens"], completion_tokens=g["completion_tokens"],
             latency_s=g["latency_s"], cost_usd=g["cost_usd"], finish_reason=g["finish_reason"],
             cached=cached,
+            meta=dict(t.meta),
         ))
     with (run_dir / "results.jsonl").open("w") as f:
         for r in records:
@@ -211,6 +213,15 @@ def evaluate(
         "run_dir": str(run_dir.relative_to(REPO)) if run_dir.is_relative_to(REPO) else str(run_dir),
         **(meta or {}),
     }
+    # Per-difficulty breakdown when tasks carry one (LiveCodeBench).
+    by_diff: dict[str, list[bool]] = {}
+    for r in records:
+        if "difficulty" in r.meta:
+            by_diff.setdefault(r.meta["difficulty"], []).append(r.passed_plus)
+    if by_diff:
+        summary["by_difficulty"] = {
+            d: {"n": len(v), "pass": sum(v) / len(v)} for d, v in sorted(by_diff.items())
+        }
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=1))
     return RunResult(run_dir=run_dir, summary=summary, records=records)
 

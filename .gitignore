@@ -17,3 +17,6 @@ runs/
 
 # Phase reports (personal notes for the final report)
 reviews/
+
+# Downloaded / converted datasets
+data/

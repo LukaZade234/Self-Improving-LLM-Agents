@@ -5,6 +5,8 @@ agent writes can change how it is scored.
 
   python eval_worker.py prepare                         # cache datasets + ground truth
   python eval_worker.py eval <dataset> <samples.jsonl> <out.json> [workers]
+  python eval_worker.py prepare-lcb <raw_dir> <meta_out.jsonl>   # LiveCodeBench
+  (dataset may be humaneval, mbpp or livecodebench)
 """
 
 import json
@@ -81,12 +83,20 @@ def evaluate(dataset, samples_path, out_path, workers="4"):
         json.dump(results, f, indent=1, sort_keys=True)
 
 
+LCB_CACHE = "/home/runner/lcb"
+
 if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd == "prepare":
         for ds in ("humaneval", "mbpp"):
             load(ds)
         print("prepared")
+    elif cmd == "prepare-lcb":  # prepare-lcb <raw_dir> <meta_out.jsonl>
+        import lcb_worker
+        lcb_worker.prepare(sys.argv[2], LCB_CACHE, sys.argv[3])
+    elif cmd == "eval" and sys.argv[2] == "livecodebench":
+        import lcb_worker
+        lcb_worker.evaluate(LCB_CACHE, *sys.argv[3:6])
     elif cmd == "eval":
         evaluate(*sys.argv[2:6])
     else:
