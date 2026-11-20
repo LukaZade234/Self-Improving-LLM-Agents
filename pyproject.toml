@@ -1,0 +1,26 @@
+[project]
+name = "sia"
+version = "0.1.0"
+description = "Framework for safe self-improving LLM coding agents"
+authors = [
+    { name = "LukaZade234", email = "lperovic12@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "evalplus>=0.3.1",
+    "litellm>=1.110.2",
+    "pyyaml>=6.0.3",
+    "typer>=0.29.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.6,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[project.scripts]
+bench = "sia.bench.cli:app"

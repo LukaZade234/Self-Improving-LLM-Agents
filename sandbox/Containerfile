@@ -1,0 +1,12 @@
+# Evaluation sandbox: scores generated code with EvalPlus. Runs with no network,
+# read-only root FS and a read-only dataset cache (see src/sia/bench/sandbox.py).
+FROM docker.io/library/python:3.12-slim
+
+RUN pip install --no-cache-dir evalplus==0.3.1 \
+ && useradd --create-home --uid 1000 runner
+
+COPY eval_worker.py /opt/sia/eval_worker.py
+
+USER runner
+WORKDIR /home/runner
+ENTRYPOINT ["python", "/opt/sia/eval_worker.py"]

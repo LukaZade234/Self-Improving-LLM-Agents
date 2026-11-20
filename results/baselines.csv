@@ -1,0 +1,3 @@
+timestamp,tag,model_name,tier,dataset,split,n_tasks,seed,temperature,prompt_sha,pass_base,pass_plus,truncated,llm_calls,completion_tokens,mean_completion_tokens,mean_latency_s,cost_usd,gen_wall_s,eval_wall_s,git_sha,run_dir
+2026-11-20T11:43:08,smoke,qwen3.5-9b,medium,humaneval,all,10,0,0.0,8230b64a0d8d,1.0,1.0,0,10,1706,170.6,7.6486812284041665,0.0,23.76,2.26,3571aa6,runs/20261120-114242_qwen3.5-9b_humaneval
+2026-11-20T11:53:24,baseline,qwen3.5-9b,medium,humaneval,all,164,0,0.0,8230b64a0d8d,0.8719512195121951,0.8353658536585366,4,154,46686,284.6707317073171,14.475678460531238,0.0,579.24,9.43,3571aa6,runs/20261120-114335_qwen3.5-9b_humaneval

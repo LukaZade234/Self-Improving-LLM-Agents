@@ -1,0 +1,35 @@
+# Model registry. `model` is a LiteLLM model string; `params` are passed to every call.
+# Thinking is explicitly OFF for every tier: Qwen3.5 in Ollama thinks by default,
+# which burns the token budget and returns empty content (found 2026-11-20).
+
+defaults:
+  params:
+    temperature: 0.0
+    max_tokens: 2048
+
+models:
+  qwen3.5-2b:
+    tier: tiny
+    model: ollama_chat/qwen3.5:2b
+    params: {think: false}
+  qwen3.5-4b:
+    tier: small
+    model: ollama_chat/qwen3.5:4b
+    params: {think: false}
+  qwen3.5-9b:
+    tier: medium
+    model: ollama_chat/qwen3.5:9b
+    params: {think: false}
+  qwen3.5-27b:
+    tier: large
+    model: ollama_chat/qwen3.5:27b
+    params: {think: false}
+  qwen3.5-35b-a3b:
+    tier: moe
+    model: ollama_chat/qwen3.5:35b-a3b
+    params: {think: false}
+  # Frontier tier: set the API key in .env (gitignored). Model choice is still to be agreed.
+  frontier:
+    tier: frontier
+    model: anthropic/claude-sonnet-5-5
+    params: {}
