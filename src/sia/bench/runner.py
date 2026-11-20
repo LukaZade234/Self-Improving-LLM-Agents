@@ -20,7 +20,7 @@ from pathlib import Path
 
 from . import sandbox
 from .extract import extract_code
-from .models import ModelConfig, complete
+from .models import ModelConfig, complete, unload
 from .tasks import Task
 
 REPO = Path(__file__).resolve().parents[3]
@@ -109,6 +109,7 @@ def evaluate(
     run_dir: Path | None = None,
     meta: dict | None = None,
     progress=None,
+    unload_before_scoring: bool = False,
 ) -> RunResult:
     if not tasks:
         raise ValueError("no tasks to evaluate")
@@ -147,6 +148,9 @@ def evaluate(
             if progress:
                 progress(t.task_id)
     gen_s = time.perf_counter() - t0
+    if unload_before_scoring:
+        # Don't overlap the model's host-RAM footprint with the sandbox's peak.
+        unload(model)
 
     # 2. Extract and write samples in EvalPlus format.
     solutions = {t.task_id: extract_code(gens[t.task_id][0]["text"], t.entry_point) for t in tasks}

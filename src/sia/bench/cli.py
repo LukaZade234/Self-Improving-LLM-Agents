@@ -38,6 +38,9 @@ def run(
     seed: int = typer.Option(0, help="Split seed and sampling seed"),
     temperature: Optional[float] = typer.Option(None, help="Override the configured temperature"),
     workers: int = typer.Option(4, help="Concurrent generation requests"),
+    unload: bool = typer.Option(
+        False, "--unload-before-scoring",
+        help="Evict the Ollama model after generation so its RAM is free for scoring (use for 27B)"),
     tag: str = typer.Option("", help="Free-text label stored in results/baselines.csv"),
     record: bool = typer.Option(True, help="Append the summary to results/baselines.csv"),
 ) -> None:
@@ -58,6 +61,7 @@ def run(
 
     typer.echo(f"{cfg.name} on {dataset}/{split}: {len(tasks)} tasks")
     result = evaluate(cfg, system_prompt, tasks, seed=seed, workers=workers,
+                      unload_before_scoring=unload,
                       meta={"split": split, "tag": tag}, progress=tick)
     s = result.summary
     typer.echo(

@@ -55,6 +55,32 @@ def get_model(name: str, path: Path = DEFAULT_CONFIG) -> ModelConfig:
     return models[name]
 
 
+def unload(cfg: ModelConfig, host: str = "http://localhost:11434") -> bool:
+    """Ask Ollama to evict a local model now, freeing VRAM *and* host RAM.
+
+    On ROCm the Ollama runner keeps an anonymous host-RAM copy of most of the
+    weights (2.5 GB for the 3.1 GB 4B model, measured 2026-11-20), so a large
+    model plus sandbox scoring can exhaust system RAM. Returns False for
+    non-Ollama models or if the server is unreachable.
+    """
+    import json
+    import urllib.request
+
+    prefix, _, tag = cfg.model.partition("/")
+    if prefix not in ("ollama", "ollama_chat"):
+        return False
+    req = urllib.request.Request(
+        f"{host}/api/generate",
+        data=json.dumps({"model": tag, "keep_alive": 0}).encode(),
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        urllib.request.urlopen(req, timeout=60).read()
+        return True
+    except OSError:
+        return False
+
+
 def complete(cfg: ModelConfig, messages: list[dict[str, str]], **overrides: Any) -> Completion:
     import litellm
 
