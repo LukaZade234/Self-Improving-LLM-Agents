@@ -1,0 +1,19 @@
+# Private project documents
+LUKA_PEROVIC_PID.pdf
+project-notes.md
+
+# Python / uv
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Secrets
+.env
+
+# Benchmark run outputs (large, regenerable; summaries go to results/)
+runs/
+
+# Phase reports (personal notes for the final report)
+reviews/
